@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mountain Crossword Puzzle</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #eef2f3;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      color: #2c3e50;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(5, 60px);
+      grid-gap: 5px;
+      justify-content: center;
+      margin: 20px 0;
+    }
+    .cell {
+      width: 60px;
+      height: 60px;
+      font-size: 24px;
+      text-transform: uppercase;
+      border: 2px solid #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: white;
+    }
+    .keyboard {
+      display: grid;
+      grid-template-columns: repeat(10, 40px);
+      grid-gap: 5px;
+      justify-content: center;
+      margin: 20px auto;
+    }
+    .key {
+      padding: 10px;
+      background-color: #dce3e9;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .key:hover {
+      background-color: #c5d0da;
+    }
+    .controls {
+      margin-top: 15px;
+    }
+    .feedback {
+      margin-top: 20px;
+      white-space: pre-line;
+    }
+    .green { background-color: #88d498 !important; }
+    .yellow { background-color: #f9dc5c !important; }
+    .gray { background-color: #ddd !important; }
+  </style>
+</head>
+<body>
+
+  <h1>Mountain Crossword Puzzle</h1>
+  <div id="grid" class="grid"></div>
+
+  <div class="keyboard" id="keyboard"></div>
+  <div class="controls">
+    <button class="key" onclick="backspace()">⌫</button>
+    <button class="key" onclick="submitGuess()">Enter</button>
+  </div>
+
+  <div class="feedback" id="feedback"></div>
+
+  <script>
+    const answers = ['EVERE', 'ALPSM', 'DENAL', 'FUJIM', 'KILIM']; // First letters of: Everest, Alps, Denali, Fuji, Kilimanjaro
+    const maxCols = 5;
+    const grid = document.getElementById('grid');
+    const feedbackDiv = document.getElementById('feedback');
+    const currentGuess = ['', '', '', '', ''];
+    let currentRow = 0;
+
+    function createGrid() {
+      for (let i = 0; i < maxCols * 6; i++) {
+        const div = document.createElement('div');
+        div.className = 'cell';
+        div.id = `cell-${i}`;
+        grid.appendChild(div);
+      }
+    }
+
+    function createKeyboard() {
+      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      const keyboard = document.getElementById('keyboard');
+      for (const letter of letters) {
+        const button = document.createElement('button');
+        button.className = 'key';
+        button.textContent = letter;
+        button.onclick = () => addLetter(letter);
+        keyboard.appendChild(button);
+      }
+    }
+
+    let currentInput = '';
+
+    function addLetter(letter) {
+      if (currentInput.length < maxCols) {
+        currentInput += letter;
+        updateGridDisplay();
+      }
+    }
+
+    function backspace() {
+      currentInput = currentInput.slice(0, -1);
+      updateGridDisplay();
+    }
+
+    function updateGridDisplay() {
+      for (let i = 0; i < maxCols; i++) {
+        const cell = document.getElementById(`cell-${currentRow * maxCols + i}`);
+        cell.textContent = currentInput[i] || '';
+        cell.classList.remove('green', 'yellow', 'gray');
+      }
+    }
+
+    function submitGuess() {
+      if (currentInput.length < maxCols) {
+        alert("Please complete the word before submitting.");
+        return;
+      }
+
+      const answer = answers[currentRow % answers.length];
+      const feedbackRow = [];
+      const letterCount = {};
+      for (let l of answer) {
+        letterCount[l] = (letterCount[l] || 0) + 1;
+      }
+
+      // First pass for greens
+      for (let i = 0; i < maxCols; i++) {
+        const cell = document.getElementById(`cell-${currentRow * maxCols + i}`);
+        if (currentInput[i] === answer[i]) {
+          cell.classList.add('green');
+          feedbackRow.push('🟩');
+          letterCount[currentInput[i]]--;
+        } else {
+          feedbackRow.push(null); // temp value
+        }
+      }
+
+      // Second pass for yellows and grays
+      for (let i = 0; i < maxCols; i++) {
+        const cell = document.getElementById(`cell-${currentRow * maxCols + i}`);
+        if (!cell.classList.contains('green')) {
+          if (letterCount[currentInput[i]] > 0) {
+            cell.classList.add('yellow');
+            feedbackRow[i] = '🟨';
+            letterCount[currentInput[i]]--;
+          } else {
+            cell.classList.add('gray');
+            feedbackRow[i] = '⬜️';
+          }
+        }
+      }
+
+      feedbackDiv.innerText += `\n${currentInput.toUpperCase()} → ${feedbackRow.join('')}`;
+      currentInput = '';
+      currentRow++;
+    }
+
+    createGrid();
+    createKeyboard();
+  </script>
+
+</body>
+</html>

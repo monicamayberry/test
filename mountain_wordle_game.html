@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mountain Wordle Game</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f8ff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      color: #2e8b57;
+      margin-bottom: 20px;
+    }
+    .wordle-board {
+      display: grid;
+      grid-template-columns: repeat(5, 50px);
+      grid-gap: 10px;
+      margin-bottom: 20px;
+    }
+    .wordle-cell {
+      width: 50px;
+      height: 50px;
+      background-color: #ccc;
+      text-align: center;
+      line-height: 50px;
+      font-size: 1.5rem;
+      border-radius: 5px;
+      border: 1px solid #999;
+    }
+    .correct {
+      background-color: #4caf50;
+      color: white;
+    }
+    .wrong-position {
+      background-color: #ffeb3b;
+      color: white;
+    }
+    .incorrect {
+      background-color: #f44336;
+      color: white;
+    }
+    .keyboard {
+      display: grid;
+      grid-template-columns: repeat(13, 40px);
+      grid-gap: 5px;
+      margin-top: 20px;
+    }
+    .key {
+      width: 40px;
+      height: 40px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      font-size: 1.2rem;
+      text-align: center;
+      line-height: 40px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    .key:active {
+      background-color: #ddd;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Mountain Wordle Game</h1>
+
+  <div class="wordle-board" id="wordle-board">
+    <!-- 5 cells for each word guess -->
+    <div class="wordle-cell"></div>
+    <div class="wordle-cell"></div>
+    <div class="wordle-cell"></div>
+    <div class="wordle-cell"></div>
+    <div class="wordle-cell"></div>
+  </div>
+
+  <div class="keyboard" id="keyboard">
+    <!-- Keyboard will be populated dynamically -->
+  </div>
+
+  <script>
+    // List of famous mountains around the world (5-letter names)
+    const mountainWords = ['Everest', 'Alpes', 'Denali', 'Kilim', 'Elbrs', 'Aconc'];
+    
+    // Select a random mountain word
+    const selectedWord = mountainWords[Math.floor(Math.random() * mountainWords.length)].toUpperCase();
+
+    // Variables for the game state
+    let currentGuess = '';
+    let guessRow = 0;
+
+    // Function to create the keyboard
+    function createKeyboard() {
+      const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      const keyboard = document.getElementById('keyboard');
+      
+      // Loop through each letter of the alphabet
+      for (let i = 0; i < alphabet.length; i++) {
+        const letter = alphabet[i];
+        const key = document.createElement('div');
+        key.classList.add('key');
+        key.textContent = letter;
+        key.addEventListener('click', () => handleKeyPress(letter));
+        keyboard.appendChild(key);
+      }
+
+      // Add Backspace key for deleting letters
+      const backspaceKey = document.createElement('div');
+      backspaceKey.classList.add('key');
+      backspaceKey.textContent = '←';
+      backspaceKey.addEventListener('click', handleBackspace);
+      keyboard.appendChild(backspaceKey);
+    }
+
+    // Function to handle key press
+    function handleKeyPress(letter) {
+      if (currentGuess.length < 5) {
+        currentGuess += letter;
+        updateBoard();
+      }
+    }
+
+    // Function to handle backspace
+    function handleBackspace() {
+      currentGuess = currentGuess.slice(0, -1);
+      updateBoard();
+    }
+
+    // Function to update the wordle board
+    function updateBoard() {
+      const board = document.getElementById('wordle-board');
+      const cells = board.getElementsByClassName('wordle-cell');
+      
+      // Fill in the cells with the current guess
+      for (let i = 0; i < 5; i++) {
+        if (i < currentGuess.length) {
+          cells[i].textContent = currentGuess[i];
+        } else {
+          cells[i].textContent = '';
+        }
+      }
+    }
+
+    // Function to handle the submit guess
+    function handleSubmitGuess() {
+      if (currentGuess.length === 5) {
+        const feedback = getFeedback();
+        giveFeedback(feedback);
+
+        if (currentGuess === selectedWord) {
+          alert('Congratulations! You guessed the word!');
+        } else {
+          currentGuess = ''; // Reset guess after submit
+          updateBoard();
+        }
+      }
+    }
+
+    // Function to get feedback (correct, wrong-position, incorrect)
+    function getFeedback() {
+      const feedback = [];
+      const guessArray = currentGuess.split('');
+      const wordArray = selectedWord.split('');
+
+      for (let i = 0; i < 5; i++) {
+        if (guessArray[i] === wordArray[i]) {
+          feedback.push('correct');
+        } else if (wordArray.includes(guessArray[i])) {
+          feedback.push('wrong-position');
+        } else {
+          feedback.push('incorrect');
+        }
+      }
+
+      return feedback;
+    }
+
+    // Function to display feedback in the UI
+    function giveFeedback(feedback) {
+      const cells = document.getElementsByClassName('wordle-cell');
+      for (let i = 0; i < 5; i++) {
+        if (feedback[i] === 'correct') {
+          cells[i].classList.add('correct');
+        } else if (feedback[i] === 'wrong-position') {
+          cells[i].classList.add('wrong-position');
+        } else {
+          cells[i].classList.add('incorrect');
+        }
+      }
+    }
+
+    // Create the keyboard and initialize the game
+    createKeyboard();
+
+    // Listen for Enter to submit the guess
+    window.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        handleSubmitGuess();
+      }
+    });
+
+  </script>
+</body>
+</html>
